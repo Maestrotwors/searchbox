@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, forwardRef, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef, Input } from '@angular/core';
 import { ControlValueAccessor, FormControl, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -18,7 +18,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 export class SearchboxComponent implements ControlValueAccessor {
   // TODO: any
   @Input() items: any = [];
-  @Output() onValueChanged = new EventEmitter();
   
   searchForm = new FormGroup({
     searchValue: new FormControl(''),
@@ -27,8 +26,9 @@ export class SearchboxComponent implements ControlValueAccessor {
   constructor() {
     this.searchForm.controls.searchValue.valueChanges
       .pipe(takeUntilDestroyed())
-      .subscribe((value: string | null) => {
-        this.onValueChanged.emit(value);
+      .subscribe((value: any) => {
+        this.onChange(value);
+        this.onTouch();
       });
   }
 
@@ -44,7 +44,7 @@ export class SearchboxComponent implements ControlValueAccessor {
     this.onTouch = fn;
   }
 
-  writeValue(input: number) {
-    // TODO:
+  writeValue(input: string) {
+    this.searchForm.controls.searchValue.patchValue(input);
   }
 }

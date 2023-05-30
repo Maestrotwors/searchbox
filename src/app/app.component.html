@@ -1,2 +1,5 @@
-<app-searchbox (onValueChanged)="searchBoxValueChanged($event)" [items]="searchService.items | async">
-</app-searchbox>
+<form [formGroup]="searchForm">
+	<app-searchbox formControlName="searchText"
+		[items]="searchService.items | async">
+	</app-searchbox>
+</form>

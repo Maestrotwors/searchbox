@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 import { SearchService } from './services/search/search.service';
 
 @Component({
@@ -7,10 +8,21 @@ import { SearchService } from './services/search/search.service';
   styleUrls: ['./app.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   searchService = inject(SearchService);
+  searchForm = new FormGroup({
+    searchText: new FormControl(''),
+  });
 
   searchBoxValueChanged(value: string | null) {
     this.searchService.searchText$.next(value);
+  }
+
+  ngOnInit() {
+    this.searchForm.controls.searchText.valueChanges.subscribe((data) => {
+      this.searchBoxValueChanged(data);
+    });
+
+    this.searchForm.controls.searchText.setValue('first text');
   }
 }
