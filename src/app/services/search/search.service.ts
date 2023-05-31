@@ -1,40 +1,31 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
-import { BehaviorSubject, debounceTime, distinctUntilChanged, Subject, switchMap } from 'rxjs';
+import { inject, Injectable} from '@angular/core';
+import { catchError, map, Observable} from 'rxjs';
+import { ISearchUserResponse } from 'src/app/interfaces/iSearch.interface';
+import { IUser } from 'src/app/interfaces/user.interface';
+
 
 @Injectable({
   providedIn: 'root',
 })
 export class SearchService {
-  searchText$ = new Subject();
-  items = new BehaviorSubject([]);
   httpClient = inject(HttpClient);
 
-  constructor() {
-    this.searchText$
-      .pipe(
-        debounceTime(200),
-        distinctUntilChanged(),
-        switchMap((value) => {
-          return this.getUsers(value as string);
-        })
+  searchUsers(searchText: string): Observable<IUser[]> {
+    return this.httpClient
+      .get<ISearchUserResponse>(
+        'https://demo.dataverse.org/api/search?q=' + searchText
       )
-      .subscribe(data => {
-        this.saveValue(data);
-      });
-  }
-
-  getUsers(searchText: string) {
-    return this.httpClient.get(
-      'https://demo.dataverse.org/api/search?q=' + searchText
-    );
-  }
-
-  private saveValue(value: any) {
-    if (value['status'] === "OK") {
-      this.items.next(value['data']['items']);
-    } else {
-      this.items.next([]);
-    }
+      .pipe(
+        map((response) => {
+          if (response.status === 'OK') {
+            return response.data.items;
+          }
+          return [];
+        }),
+        catchError((err) => {
+          return [];
+        })
+      );
   }
 }

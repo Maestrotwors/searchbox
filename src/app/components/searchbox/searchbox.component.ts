@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, forwardRef, Input } from '@angular/core';
 import { ControlValueAccessor, FormControl, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { debounceTime, distinctUntilChanged } from 'rxjs';
+
 
 @Component({
   selector: 'app-searchbox',
@@ -16,23 +18,22 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   ],
 })
 export class SearchboxComponent implements ControlValueAccessor {
-  // TODO: any
-  @Input() items: any = [];
-  
   searchForm = new FormGroup({
     searchValue: new FormControl(''),
   });
+  
+  @Input() items: { name: string }[] | null = [];
 
   constructor() {
     this.searchForm.controls.searchValue.valueChanges
-      .pipe(takeUntilDestroyed())
-      .subscribe((value: any) => {
-        this.onChange(value);
+      .pipe(debounceTime(200), distinctUntilChanged(), takeUntilDestroyed())
+      .subscribe((query) => {
+        this.onChange(query);
         this.onTouch();
       });
   }
 
-  onChange: any = (value: number) => {};
+  onChange: any = (input: string) => {};
 
   onTouch: any = () => {};
 

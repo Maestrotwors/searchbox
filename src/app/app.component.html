@@ -1,5 +1,4 @@
 <form [formGroup]="searchForm">
-	<app-searchbox formControlName="searchText"
-		[items]="searchService.items | async">
+	<app-searchbox formControlName="searchText" [items]="items | async">
 	</app-searchbox>
 </form>

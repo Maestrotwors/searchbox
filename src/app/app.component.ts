@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { SearchService } from './services/search/search.service';
+import { IUser } from './interfaces/user.interface';
+import { BehaviorSubject, filter, skip, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -8,21 +10,27 @@ import { SearchService } from './services/search/search.service';
   styleUrls: ['./app.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
   searchService = inject(SearchService);
+
   searchForm = new FormGroup({
-    searchText: new FormControl(''),
+    searchText: new FormControl('', Validators.required),
   });
 
-  searchBoxValueChanged(value: string | null) {
-    this.searchService.searchText$.next(value);
-  }
+  items = new BehaviorSubject<IUser[]>([]);
 
-  ngOnInit() {
-    this.searchForm.controls.searchText.valueChanges.subscribe((data) => {
-      this.searchBoxValueChanged(data);
-    });
-
-    this.searchForm.controls.searchText.setValue('first text');
+  constructor() {
+    this.searchForm.controls.searchText.valueChanges
+      .pipe(
+        filter(() => {
+          return this.searchForm.controls.searchText.valid ? true : false;
+        }),
+        switchMap((value) => {
+          return this.searchService.searchUsers(value as string);
+        })
+      )
+      .subscribe((users) => {
+        this.items.next(users);
+      });
   }
 }
