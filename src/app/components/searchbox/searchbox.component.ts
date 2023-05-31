@@ -1,11 +1,8 @@
-import { ChangeDetectionStrategy, Component, forwardRef, inject, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef, Input } from '@angular/core';
 import { ControlValueAccessor, FormControl, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { debounceTime } from 'rxjs/internal/operators/debounceTime';
-import { distinctUntilChanged } from 'rxjs/internal/operators/distinctUntilChanged';
-import { switchMap } from 'rxjs/internal/operators/switchMap';
-import { SearchService } from 'src/app/services/search/search.service';
-import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
+import { debounceTime, distinctUntilChanged } from 'rxjs';
+
 
 @Component({
   selector: 'app-searchbox',
@@ -21,34 +18,22 @@ import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
   ],
 })
 export class SearchboxComponent implements ControlValueAccessor {
-  searchService = inject(SearchService);
   searchForm = new FormGroup({
     searchValue: new FormControl(''),
   });
-  items = new BehaviorSubject([]);
+  
+  @Input() items: { name: string }[] | null = [];
 
   constructor() {
     this.searchForm.controls.searchValue.valueChanges
-      .pipe(
-        takeUntilDestroyed(),
-        debounceTime(200),
-        distinctUntilChanged(),
-        switchMap((value) => {
-          return this.searchService.getUsers(value as string);
-        })
-      )
-      .subscribe((data: any) => {
-        if (data['status'] === 'OK') {
-          this.items.next(data['data']['items']);
-        } else {
-          this.items.next([]);
-        }
-        this.onChange(data);
+      .pipe(debounceTime(200), distinctUntilChanged(), takeUntilDestroyed())
+      .subscribe((query) => {
+        this.onChange(query);
         this.onTouch();
       });
   }
 
-  onChange: any = (value: number) => {};
+  onChange: any = (input: string) => {};
 
   onTouch: any = () => {};
 
