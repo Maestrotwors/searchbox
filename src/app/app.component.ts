@@ -1,7 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
-import { SearchService } from './services/search/search.service';
 
 @Component({
   selector: 'app-root',
@@ -10,22 +8,12 @@ import { SearchService } from './services/search/search.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {
-  searchService = inject(SearchService);
+  
   searchForm = new FormGroup({
     searchText: new FormControl(''),
   });
 
-  searchBoxValueChanged(value: string | null) {
-    this.searchService.searchText$.next(value);
-  }
-
-  contructor() {
-    this.searchForm.controls.searchText.valueChanges
-      .pipe(takeUntilDestroyed())
-      .subscribe((data) => {
-        this.searchBoxValueChanged(data);
-      });
-
+  constructor() {
     this.searchForm.controls.searchText.setValue('first text');
   }
 }

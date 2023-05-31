@@ -2,8 +2,9 @@
 	<input formControlName="searchValue" type="search" />
 </form>
 <div>
-	<div>List:</div>
-	<ul *ngFor="let item of items">
+	<ul *ngFor="let item of items | async; else loading">
 		<li>{{item?.['name']}}</li>
 	</ul>
+	<ng-template #loading>Загрузка...</ng-template>
+	<div *ngIf="(items | async)?.length === 0">Данных не найдено</div>
 </div>
